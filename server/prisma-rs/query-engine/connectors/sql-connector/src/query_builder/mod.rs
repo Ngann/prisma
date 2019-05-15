@@ -8,7 +8,7 @@ use connector::{
 use prisma_models::prelude::*;
 use prisma_query::ast::*;
 use related_nodes::RelatedNodesQueryBuilder;
-use std::sync::Arc;
+use std::{marker::PhantomData, sync::Arc};
 
 pub trait SelectDefinition {
     fn into_select(self, _: ModelRef) -> Select;
@@ -95,7 +95,7 @@ impl QueryBuilder {
         selected_fields: &SelectedFields,
     ) -> Select {
         let is_with_pagination = query_arguments.is_with_pagination();
-        let builder = RelatedNodesQueryBuilder::new(from_field, from_node_ids, query_arguments, selected_fields);
+        let builder = R::new(from_field, from_node_ids, query_arguments, selected_fields);
 
         let select_ast = if is_with_pagination {
             builder.with_pagination()

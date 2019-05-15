@@ -9,9 +9,10 @@ struct ScalarListElement {
     value: PrismaValue,
 }
 
-impl<T> DataResolver for SqlDatabase<T>
+impl<'a, T, R> DataResolver for SqlDatabase<T, R>
 where
     T: Transactional,
+    R: RelatedNodesQueryBuilder<'a>,
 {
     fn get_node_by_where(
         &self,
@@ -67,7 +68,16 @@ where
         let db_name = &from_field.model().internal_data_model().db_name;
         let idents = selected_fields.type_identifiers();
         let field_names = selected_fields.names();
-        let query = QueryBuilder::get_related_nodes(from_field, from_node_ids, query_arguments, selected_fields);
+
+        let query = {
+            let builder = R::new(from_field, from_node_ids, query_arguments, selected_fields);
+
+            if query_arguments.is_with_pagination() {
+                builder.with_pagination()
+            } else {
+                builder.without_pagination()
+            }
+        };
 
         let nodes: ConnectorResult<Vec<Node>> = self
             .executor

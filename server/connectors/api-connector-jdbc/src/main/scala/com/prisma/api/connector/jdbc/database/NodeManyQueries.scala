@@ -125,6 +125,8 @@ trait NodeManyQueries extends BuilderBase with FilterConditionBuilder with Curso
       val queries          = Vector.fill(distinctModelIds.size)(baseQuery)
       val query            = queries.mkString(" union all ")
 
+      println(query)
+
       val ps = ctx.connection.prepareStatement(query)
       val pp = new PositionedParameters(ps)
 
